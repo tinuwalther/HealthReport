@@ -1,0 +1,104 @@
+/*------------------------------------------------------------------------------
+Author:   Martin Walther
+Version:  1.0.0.0000
+------------------------------------------------------------------------------*/
+
+html, body, form, fieldset, table, th, tr, td, img {
+    margin: 2;
+    padding: 2;
+    font: 96%/150% arial,helvetica,sans-serif;
+    text-align:left;
+}
+
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #333;
+    position: -webkit-sticky; /* Safari */
+    position: sticky;
+    top: 0;
+}
+
+li {
+    float: left;
+}
+
+li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+li a:hover:not(.active) {
+    background-color: #4CAF50;
+}
+
+.active {
+    background-color: #4CAF50;
+}
+
+h1 {
+    text-align: center;
+    color: white;
+    text-shadow: 2px 2px 4px #000000;
+    border-radius: 25px;
+    background-color: #4CAF50;
+    padding: 25px;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+td, th {
+    border: 1px solid white;
+    padding: 5px;
+}
+
+th {
+    background-color: #80BFFF; 
+    color: white;
+}
+
+td {
+    border: 1px solid white;
+    vertical-align: top;
+    padding: 5px;
+}
+
+tr:nth-child(even){
+    background-color: #F5F6CE;
+}
+
+tr:nth-child(odd){
+    background-color: #FBFBEF;
+}
+
+tr:hover td{
+    Background-Color: red;
+    Color:white;
+}
+
+table.list{ float: left; }
+
+    table.list td:nth-child(1){
+	font-weight: bold;
+	border-right: 1px grey solid;
+	text-align: right;
+}
+
+div.column { width: 320px; float: left; }
+div.first{ padding-right: 20px; border-right: 1px  grey solid; }
+div.second{ margin-left: 30px; }
+
+footer {
+    background-color: #A9F5A9;
+    text-align: center;
+    Color:white;
+    border-radius: 25px;
+    margin: 5px;
+}
