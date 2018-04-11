@@ -1,7 +1,10 @@
 # System Health Report
 
-[CSS w3schools]: https://www.w3schools.com/css/css_align.asp "w3schools.com - THE WORLD'S LARGEST WEB DEVELOPER SITE"
-[Chart Types]: https://msdn.microsoft.com/en-us/library/dd489233.aspx "Microsoft Developper Network"
+## References
+
+[PowerShell Blog For IT's](https://psscripts.wordpress.com/2014/09/01/powershell-and-charts/).   
+[w3schools Online Web Tutorials](https://www.w3schools.com/default.asp).   
+[Microsoft Developper Network](https://msdn.microsoft.com/en-us/library/dd489233.aspx).   
 
 ## Create a health report with the following items  
 
