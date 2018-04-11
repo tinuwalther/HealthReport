@@ -18,16 +18,21 @@
 .PARAMETER ThresholdCountProcesses
  Threshold Count Processes
 
-.PARAMETER ThresholFreeSpacePercent
+.PARAMETER ThresholdFreeSpacePercent
  Threshol Free DiskSpace Percent
 
 .PARAMETER ThresholdLastEventDays
  Threshold LastEvent Days
 
+.PARAMETER OutputToJson
+ Switch, save all failed objects to an JSON file
+
+ .PARAMETER InputFromJson
+ Switch, import failed objects from an JSON file
+
 .NOTES
  Author: Martin Walther
  Date created: 12.10.2014
- 
  Microsoft Chart Controls für Microsoft .NET Framework 3.5 kann nur installiert werden, wenn Microsoft .NET Framework 3.5 SP1 installiert ist.
  https://www.w3schools.com/css/css_align.asp
  https://psscripts.wordpress.com/2014/09/01/powershell-and-charts/
@@ -44,8 +49,10 @@ param(
     [Parameter(Mandatory=$false)][Int]$ThresholdMemoryPercent   = 30,
     [Parameter(Mandatory=$false)][Int]$ThresholdTopProcesses    = 5,
     [Parameter(Mandatory=$false)][Int]$ThresholdCountProcesses  = 5,
-    [Parameter(Mandatory=$false)][Int]$ThresholFreeSpacePercent = 30,
-    [Parameter(Mandatory=$false)][Int]$ThresholdLastEventDays   = 1
+    [Parameter(Mandatory=$false)][Int]$ThresholdFreeSpacePercent = 30,
+    [Parameter(Mandatory=$false)][Int]$ThresholdLastEventDays   = 1,
+    [Parameter(Mandatory=$false)][Switch]$OutputToJson,
+    [Parameter(Mandatory=$false)][Switch]$InputFromJson
 )
 
 #region PSCode
@@ -57,16 +64,22 @@ function Test-MicrosoftChartControls {
     Write-verbose $function
     $ret = $true
     try{
-	    $wmiobj = Get-WmiObject -Class Win32_Product -Filter "Name LIKE '%Microsoft Chart Controls%'"
-        if([string]::IsNullOrEmpty($wmiobj)){
-            $ret = $false
-            Write-Host "Microsoft Chart Controls for Microsoft .NET Framework 3.5 not found" -ForegroundColor Yellow
-            Write-Host "You can download the Chart Controls from https://www.microsoft.com/en-us/download/details.aspx?id=14422" -ForegroundColor Yellow
+        if(-not(Test-Path -Path "$($script:Scriptpath)\JSON\$($function).json")){
+	        $wmiobj = Get-WmiObject -Class Win32_Product -Filter "Name LIKE '%Microsoft Chart Controls%'"
+            if([string]::IsNullOrEmpty($wmiobj)){
+                $ret = $false
+                Write-Host "Microsoft Chart Controls for Microsoft .NET Framework 3.5 not found" -ForegroundColor Yellow
+                Write-Host "You can download the Chart Controls from https://www.microsoft.com/en-us/download/details.aspx?id=14422" -ForegroundColor Yellow
+            }
+            else{
+                'Microsoft Chart Controls for Microsoft .NET Framework 3.5 installed' | Out-File -FilePath "$($script:Scriptpath)\JSON\$($function).json"
+            }
         }
     }
     catch{
         Write-verbose "$($function): $($_.Exception.Message)"
         $Error.Clear()
+        $ret = $false
     }
     return $ret
 }
@@ -92,7 +105,9 @@ function Get-HostUptime {
                     Seconds = "{0:00}" -f $Time.Seconds
                 }
                 $ret += $obj
-                $ret | ConvertTo-Json -Compress | Out-File -FilePath "$($script:Scriptpath)\JSON\$($function).json"
+                if($OutputToJson){
+                    $ret | ConvertTo-Json -Compress | Out-File -FilePath "$($script:Scriptpath)\JSON\$($function).json"
+                }
             }
         }
     }
@@ -128,7 +143,9 @@ function Get-Raminfo{
                         'Free(%)'   = "{0:0}"    -f $FreeRamPercent
                     }
                     $ret += $obj
-                    $ret | ConvertTo-Json -Compress | Out-File -FilePath "$($script:Scriptpath)\JSON\$($function).json"
+                    if($OutputToJson){
+                        $ret | ConvertTo-Json -Compress | Out-File -FilePath "$($script:Scriptpath)\JSON\$($function).json"
+                    }
                 }
             }
         }
@@ -163,7 +180,9 @@ function Get-Diskinfo{
                 }
                 $ret += $obj
             }
-            $ret | ConvertTo-Json -Compress | Out-File -FilePath "$($script:Scriptpath)\JSON\$($function).json"
+            if($OutputToJson){
+                $ret | ConvertTo-Json -Compress | Out-File -FilePath "$($script:Scriptpath)\JSON\$($function).json"
+            }
         }
     }
     catch{
@@ -200,7 +219,9 @@ function Get-LastEventCodes{
                     $ret += $obj
                 }
             }
-            $ret | ConvertTo-Json -Compress | Out-File -FilePath "$($script:Scriptpath)\JSON\$($Logname).json"
+            if($OutputToJson){
+                $ret | ConvertTo-Json -Compress | Out-File -FilePath "$($script:Scriptpath)\JSON\$($Logname).json"
+            }
         }
     }
     catch{
@@ -232,7 +253,9 @@ function Get-StoppedServices{
                 }
                 $ret += $obj
             }
-            $ret | ConvertTo-Json -Compress | Out-File -FilePath "$($script:Scriptpath)\JSON\$($function).json"
+            if($OutputToJson){
+                $ret | ConvertTo-Json -Compress | Out-File -FilePath "$($script:Scriptpath)\JSON\$($function).json"
+            }
         }
     }
     catch{
@@ -267,7 +290,9 @@ function Get-TopProcesses{
                 }
                 $ret += $obj
             }
-            $ret | ConvertTo-Json -Compress | Out-File -FilePath "$($script:Scriptpath)\JSON\$($function).json"
+            if($OutputToJson){
+                $ret | ConvertTo-Json -Compress | Out-File -FilePath "$($script:Scriptpath)\JSON\$($function).json"
+            }
         }
     }
     catch{
@@ -295,7 +320,9 @@ function Count-Processes{
                 }
                 $ret += $obj
             }
-            $ret | ConvertTo-Json -Compress | Out-File -FilePath "$($script:Scriptpath)\JSON\$($function).json"
+            if($OutputToJson){
+                $ret | ConvertTo-Json -Compress | Out-File -FilePath "$($script:Scriptpath)\JSON\$($function).json"
+            }
         }
     }
     catch{
@@ -310,7 +337,8 @@ function Set-HtmlMiddleEventlog{
     param(
         [Parameter(Mandatory=$true)][String]$Logname,
         [Parameter(Mandatory=$true)][Int]   $lastdays,
-        [Parameter(Mandatory=$true)][Object]$htmlTable
+        [Parameter(Mandatory=$true)][Object]$htmlTable,
+        [Parameter(Mandatory=$true)][String]$status
     )
     $function = $($MyInvocation.MyCommand.Name)
     Write-verbose $function
@@ -319,7 +347,7 @@ function Set-HtmlMiddleEventlog{
 $ret += @"
 <div>
 <h3>$Logname Log with Warnings or Errors</h3>
-<p>The following is a list of the <b>$Logname log</b> for the <b>last $lastdays days</b> that had an Event Type of either Warning or Error.</p>
+<p>The following is a list of the <b>$Logname log</b> for the <b>last $lastdays days</b> that had an Event Type of either Warning or Error ($status).</p>
 <table>$htmlTable</table>
 </div>
 "@
@@ -407,14 +435,24 @@ if(-not(Test-Path -Path "$($script:Scriptpath)\images")){$null = New-Item -Path 
 #region HostUptime
 $htmlTable = $null
 $psobj     = $null
-$psobj     = Get-HostUptime -threshold $ThresholdUptimeDays -Verbose 
+
+$jsonfile = "$($script:Scriptpath)\JSON\Get-HostUptime.json"
+if(($InputFromJson -eq $true) -and (Test-Path -Path $jsonfile)){
+    $psobj  = Get-Content -Path $jsonfile | ConvertFrom-Json
+    $status = 'offline'
+}
+else{
+    $psobj  = Get-HostUptime -threshold $ThresholdUptimeDays -Verbose 
+    $status = 'online'
+}
+
 if(-not([String]::IsNullOrEmpty($psobj))){
     $script:HTMLMenu   += '<li><a href="#uptime">Uptime</a></li>'
     $script:HTMLMiddle += '<h2 id="uptime">Uptime</h2>'
     $htmlTable         = $psobj | ConvertTo-Html -Fragment 
     $script:HTMLMiddle += @"
     <div>
-    <p>The following is the <b>last boot-time</b> for the computer.</p>
+    <p>The following is the <b>last boot-time</b> for the computer ($status).</p>
     <table>$htmlTable</table>
     </div>
 "@
@@ -424,14 +462,24 @@ if(-not([String]::IsNullOrEmpty($psobj))){
 #region Memory
 $htmlTable = $null
 $psobj     = $null
-$psobj     = Get-Raminfo -threshold $ThresholdMemoryPercent -Verbose 
+
+$jsonfile  = "$($script:Scriptpath)\JSON\Get-Raminfo.json"
+if(($InputFromJson -eq $true) -and (Test-Path -Path $jsonfile)){
+    $psobj  = Get-Content -Path $jsonfile | ConvertFrom-Json
+    $status = 'offline'
+}
+else{
+    $psobj  = Get-Raminfo -threshold $ThresholdMemoryPercent -Verbose
+    $status = 'online'
+}
+
 if(-not([String]::IsNullOrEmpty($psobj))){
     $script:HTMLMenu   += '<li><a href="#memory">Memory</a></li>'
     $script:HTMLMiddle += '<h2 id="memory">Memory</h2>'
     $htmlTable         = $psobj | ConvertTo-Html -Fragment 
     $script:HTMLMiddle += @"
     <div>
-    <p>The following list the memory usage.</p>
+    <p>The following list the memory usage ($status).</p>
     <table>$htmlTable</table>
     </div>
 "@
@@ -441,8 +489,20 @@ if(-not([String]::IsNullOrEmpty($psobj))){
 #region CountProcesses
 $htmlTable    = $null
 $psobj        = $null
+
+$jsonfile  = "$($script:Scriptpath)\JSON\Count-Processes.json"
+
 if($ChartControlInstalled -eq $true){
-    $psobj        = Count-Processes -threshold $ThresholdCountProcesses -Verbose
+
+    if(($InputFromJson -eq $true) -and (Test-Path -Path $jsonfile)){
+        $psobj  = Get-Content -Path $jsonfile | ConvertFrom-Json
+        $status = 'offline'
+    }
+    else{
+        $psobj  = Count-Processes -threshold $ThresholdCountProcesses -Verbose
+        $status = 'online'
+    }
+    
     if(-not([String]::IsNullOrEmpty($psobj))){
 
         $ProcessList = @(
@@ -471,7 +531,17 @@ if($ChartControlInstalled -eq $true){
 #region TopProcesses
 $htmlTable    = $null
 $psobj        = $null
-$psobj        = Get-TopProcesses -threshold $ThresholdTopProcesses -Verbose
+
+$jsonfile  = "$($script:Scriptpath)\JSON\Get-TopProcesses.json"
+if(($InputFromJson -eq $true) -and (Test-Path -Path $jsonfile)){
+    $psobj  = Get-Content -Path $jsonfile | ConvertFrom-Json
+    $status = 'offline'
+}
+else{
+    $psobj  = Get-TopProcesses -threshold $ThresholdTopProcesses -Verbose
+    $status = 'online'
+}
+
 if(-not([String]::IsNullOrEmpty($psobj))){
     $script:HTMLMenu   += '<li><a href="#processes">Processes</a></li>'
     $script:HTMLMiddle += '<h2 id="processes">Processes</h2>'
@@ -502,7 +572,7 @@ if(-not([String]::IsNullOrEmpty($psobj))){
     $TopProcessesChart
     $CountProcessesChart
     </div><div>
-    <p>The following is a list of the <b>top $ThresholdTopProcesses processes</b> with the most allocate memory.</p>
+    <p>The following is a list of the <b>top $ThresholdTopProcesses processes</b> with the most allocate memory ($status).</p>
     <table>$htmlTable</table>
     </div>
 "@
@@ -512,14 +582,24 @@ if(-not([String]::IsNullOrEmpty($psobj))){
 #region Disk
 $htmlTable   = $null
 $psobj       = $null
-$psobj       = Get-Diskinfo -threshold $ThresholFreeSpacePercent -Verbose 
+
+$jsonfile  = "$($script:Scriptpath)\JSON\Get-Diskinfo.json"
+if(($InputFromJson -eq $true) -and (Test-Path -Path $jsonfile)){
+    $psobj  = Get-Content -Path $jsonfile | ConvertFrom-Json
+    $status = 'offline'
+}
+else{
+    $psobj  = Get-Diskinfo -threshold $ThresholdFreeSpacePercent -Verbose
+    $status = 'online'
+}
+
 if(-not([String]::IsNullOrEmpty($psobj))){
     $script:HTMLMenu   += '<li><a href="#disks">Disks</a></li>'
     $script:HTMLMiddle += '<h2 id="disks">Disk</h2>'
     $htmlTable         = $psobj | ConvertTo-Html -Fragment 
     $script:HTMLMiddle += @"
     <div>
-    <p>The following list the disks with <b>less than $ThresholFreeSpacePercent%</b> free space.</p>
+    <p>The following list the disks with <b>less than $ThresholdFreeSpacePercent%</b> free space ($status).</p>
     <table>$htmlTable</table>
     </div>
 "@
@@ -536,12 +616,22 @@ $LogsToCheck = @(
 foreach($item in $LogsToCheck){
     $htmlTable = $null
     $psobj     = $null
-    $psobj = Get-LastEventCodes -Logname $item -day $ThresholdLastEventDays -Verbose
+
+    $jsonfile  = "$($script:Scriptpath)\JSON\$($item).json"
+    if(($InputFromJson -eq $true) -and (Test-Path -Path $jsonfile)){
+        $psobj  = Get-Content -Path $jsonfile | ConvertFrom-Json
+        $status = 'offline'
+    }
+    else{
+        $psobj  = Get-LastEventCodes -Logname $item -day $ThresholdLastEventDays -Verbose
+        $status = 'online'
+    }
+
     if(-not([String]::IsNullOrEmpty($psobj))){
         $script:HTMLMenu   += "<li><a href=""#$item"">$($item)log</a></li>"
         $script:HTMLMiddle += "<h2 id=""$item"">$($item)log</h2>"
         $htmlTable         = $psobj | Sort-Object TimeGenerated -Descending | ConvertTo-Html -Fragment 
-        $script:HTMLMiddle += Set-HtmlMiddleEventlog -Logname $item -lastdays $ThresholdLastEventDays -htmlTable $htmlTable 
+        $script:HTMLMiddle += Set-HtmlMiddleEventlog -Logname $item -lastdays $ThresholdLastEventDays -htmlTable $htmlTable -status $status
     }
 }
 #endregion
@@ -549,14 +639,24 @@ foreach($item in $LogsToCheck){
 #region Services
 $htmlTable = $null
 $psobj     = $null
-$psobj     = Get-StoppedServices -Verbose
+
+$jsonfile  = "$($script:Scriptpath)\JSON\Get-StoppedServices.json"
+if(($InputFromJson -eq $true) -and (Test-Path -Path $jsonfile)){
+    $psobj  = Get-Content -Path $jsonfile | ConvertFrom-Json
+    $status = 'offline'
+}
+else{
+    $psobj  = Get-StoppedServices -Verbose
+    $status = 'online'
+}
+
 if(-not([String]::IsNullOrEmpty($psobj))){
     $script:HTMLMenu   += '<li><a href="#services">Services</a></li>'
     $script:HTMLMiddle += '<h2 id="services">Services</h2>'
     $htmlTable         = $psobj | ConvertTo-Html -Fragment 
     $script:HTMLMiddle += @"
     <div>
-    <p>The following is a list of all <b>stopped services</b> with start-mode <b>automatic</b>.</p>
+    <p>The following is a list of all <b>stopped services</b> with start-mode <b>automatic</b> ($status).</p>
     <table>$htmlTable</table>
     </div>
 "@
@@ -576,12 +676,22 @@ $(Get-Content -Path "$($script:Scriptpath)\styles.css")
 </head>
 <body>
 <title>System Health Report</title>
-<h1 id="home">Health report of computer $($env:COMPUTERNAME)</h1>
+<h1 id="home">Health report ($status) of computer $($env:COMPUTERNAME)</h1>
 <ul>
 <li><a class="active" href="#home">Home</a></li>
 $script:HTMLMenu
 <li><a href="#about">About</a></li>
 </ul>
+<div>
+<p>Check computer's Uptime, Memory Usage, Diskspace, Eventlogs, Stopped Services, and Top Processes.</p>
+<p>Threshold Uptime $ThresholdUptimeDays days.
+Threshold Memory  $ThresholdMemoryPercent%.
+Threshold Top $ThresholdTopProcesses Processes.
+Threshold Count Processes limited to $ThresholdCountProcesses Processes.
+Threshold Free Diskspace $ThresholdFreeSpacePercent%.
+Threshold Events for last $ThresholdLastEventDays days.</p>
+</div>
+<hr />
 <div>
 "@
 #endregion
