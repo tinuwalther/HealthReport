@@ -15,4 +15,4 @@
 ## To do
 
 - [x] Export each function-return as JSON-File   
-- [ ] Import Objects from JSON-Files and create the report   
+- [x] Import Objects from JSON-Files and create the report   
