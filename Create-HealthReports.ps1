@@ -4,7 +4,7 @@
  Create a health report
 
 .DESCRIPTION
- Create a health report with HostUptime, Raminfo, Diskinfo, LastEventCodes, StoppedServices, TopProcesses
+ Create a health report with HostUptime, Raminfo, Diskinfo, LastEventCodes, StoppedServices, TopProcesses, LastHotfixes
 
 .PARAMETER ThresholdUptimeDays
  Threshold Uptime Days
@@ -21,8 +21,11 @@
 .PARAMETER ThresholdFreeSpacePercent
  Threshol Free DiskSpace Percent
 
-.PARAMETER ThresholdLastEventDays
- Threshold LastEvent Days
+.PARAMETER ThresholdFreeSpacePercent
+ Threshol Free DiskSpace Percent
+
+.PARAMETER ThresholdLastHotfixes
+ Threshold last installed Hotfixes
 
 .PARAMETER OutputToJson
  Switch, save all failed objects to an JSON file
@@ -45,12 +48,13 @@
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory=$false)][Int]$ThresholdUptimeDays      = 30,
-    [Parameter(Mandatory=$false)][Int]$ThresholdMemoryPercent   = 30,
-    [Parameter(Mandatory=$false)][Int]$ThresholdTopProcesses    = 5,
-    [Parameter(Mandatory=$false)][Int]$ThresholdCountProcesses  = 5,
+    [Parameter(Mandatory=$false)][Int]$ThresholdUptimeDays       = 30,
+    [Parameter(Mandatory=$false)][Int]$ThresholdMemoryPercent    = 30,
+    [Parameter(Mandatory=$false)][Int]$ThresholdTopProcesses     = 5,
+    [Parameter(Mandatory=$false)][Int]$ThresholdCountProcesses   = 5,
+    [Parameter(Mandatory=$false)][Int]$ThresholdLastHotfixes     = 5,
     [Parameter(Mandatory=$false)][Int]$ThresholdFreeSpacePercent = 30,
-    [Parameter(Mandatory=$false)][Int]$ThresholdLastEventDays   = 1,
+    [Parameter(Mandatory=$false)][Int]$ThresholdLastEventDays    = 1,
     [Parameter(Mandatory=$false)][Switch]$OutputToJson,
     [Parameter(Mandatory=$false)][Switch]$InputFromJson
 )
@@ -360,6 +364,39 @@ $ret += @"
 
 }
 
+function Get-InstalledHotfixes{
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)][Int]$threshold
+    )
+    $function = $($MyInvocation.MyCommand.Name)
+    Write-verbose $function
+    $ret = @()
+    try{
+        $wmiobj = Get-HotFix | Select-Object HotfixId,InstalledOn,InstalledBy,Description,Caption -Last 5 | Sort-Object InstalledOn -Descending
+        if(-not([String]::IsNullOrEmpty($wmiobj))){
+            $wmiobj | %{
+                $obj = [PSCustomObject]@{
+                    HotfixId    = $_.HotfixId
+                    InstalledOn = $_.InstalledOn
+                    InstalledBy = $_.InstalledBy
+                    Description = $_.Description
+                    Caption     = $_.Caption
+                }
+                $ret += $obj
+            }
+            if($OutputToJson){
+                $ret | ConvertTo-Json -Compress | Out-File -FilePath "$($script:Scriptpath)\JSON\$($function).json"
+            }
+        }
+    }
+    catch{
+        Write-verbose "$($function): $($_.Exception.Message)"
+        $Error.Clear()
+    }
+    return $ret
+}
+
 function New-ChartImage{
     [CmdletBinding()]
     param(
@@ -663,6 +700,33 @@ if(-not([String]::IsNullOrEmpty($psobj))){
 }
 #endregion
 
+#region Hotfixes
+$htmlTable = $null
+$psobj     = $null
+
+$jsonfile  = "$($script:Scriptpath)\JSON\Get-InstalledHotfixes.json"
+if(($InputFromJson -eq $true) -and (Test-Path -Path $jsonfile)){
+    $psobj  = Get-Content -Path $jsonfile | ConvertFrom-Json
+    $status = 'offline'
+}
+else{
+    $psobj  = Get-InstalledHotfixes -threshold $ThresholdLastHotfixes -Verbose
+    $status = 'online'
+}
+
+if(-not([String]::IsNullOrEmpty($psobj))){
+    $script:HTMLMenu   += '<li><a href="#hotfix">Hotfix</a></li>'
+    $script:HTMLMiddle += '<h2 id="hotfix">Hotfix</h2>'
+    $htmlTable         = $psobj | ConvertTo-Html -Fragment 
+    $script:HTMLMiddle += @"
+    <div>
+    <p>The following is a list of the last $($ThresholdLastHotfixes) <b>installed Hotfixes</b> ($status).</p>
+    <table>$htmlTable</table>
+    </div>
+"@
+}
+#endregion
+
 #region HTML
 
 #region HTMLHeader
@@ -683,13 +747,14 @@ $script:HTMLMenu
 <li><a href="#about">About</a></li>
 </ul>
 <div>
-<p>Check computer's Uptime, Memory Usage, Diskspace, Eventlogs, Stopped Services, and Top Processes.</p>
+<p>Check computer's Uptime, Memory Usage, Diskspace, Eventlogs, Stopped Services, Top Processes and last installed Hotfixes.</p>
 <p>Threshold Uptime $ThresholdUptimeDays days.
 Threshold Memory  $ThresholdMemoryPercent%.
 Threshold Top $ThresholdTopProcesses Processes.
 Threshold Count Processes limited to $ThresholdCountProcesses Processes.
 Threshold Free Diskspace $ThresholdFreeSpacePercent%.
 Threshold Events for last $ThresholdLastEventDays days.</p>
+Threshold last $ThresholdLastHotfixes Hotfixes.</p>
 </div>
 <hr />
 <div>
