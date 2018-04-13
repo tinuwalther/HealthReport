@@ -14,6 +14,7 @@
 - LastEventCodes
 - StoppedServices
 - TopProcesses
+- LastInstalledHotfixes
 
 ## To do
 
