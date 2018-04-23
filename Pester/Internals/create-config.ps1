@@ -1,10 +1,24 @@
-$obj = [PSCustomObject]@{
-    Version      = '1.0.0.0000'
-    Logfolder    = 'Logs'
-    Scriptfolder = 'Tests'    
-    Reportfolder = 'Reports'
-    Logfile      = 'TestEnvironment.log'
-    JsonFile     = 'TestEnvironment.json'
-    XmlFile      = 'TestEnvironment.xml'
-}
-$obj | ConvertTo-Json -Compress | Out-File '.\config.json' -Force
+<#
+    Create Configuration file for TestEnvironment
+#>
+@{
+    general = @(
+        [PSCustomObject] @{
+            Author       = 'Martin Walther'
+            Version      = '1.0.0.0000'
+        }
+    )
+    startscript = @(
+        [PSCustomObject] @{
+            Configfolder = 'Config'
+            Internals    = 'Internals'
+            Logfolder    = 'Logs'
+            Scriptfolder = 'Tests'    
+            Reportfolder = 'Reports'
+            PesterConfig = 'config.pester.json'
+            Logfile      = 'TestEnvironment.log'
+            JsonFile     = 'TestEnvironment.json'
+            XmlFile      = 'TestEnvironment.xml'
+        }
+    )
+} | ConvertTo-Json | Out-File '..\Config\config.json' -Force
