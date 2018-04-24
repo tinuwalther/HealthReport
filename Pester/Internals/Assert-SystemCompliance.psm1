@@ -1,4 +1,4 @@
-﻿<#
+<#
 
     .SYNOPSIS
     Create a health report
@@ -261,6 +261,31 @@ function Get-InstalledHotfixes{
                 Caption     = $_.Caption
             }
             $ret += $obj
+        }
+    }
+    return $ret
+}
+
+function Get-MemberOfLocalAdmins{
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$false)][Object]$ExceptionList
+    )
+    $function = $($MyInvocation.MyCommand.Name)
+    Write-verbose $function
+    $ret = @()
+    $admins = Get-LocalGroupMember -SID 'S-1-5-32-544'
+    if(-not([String]::IsNullOrEmpty($admins))){
+        $admins | ForEach-Object{
+            if($ExceptionList -notcontains $_.Name){
+                $obj = [PSCustomObject]@{
+                    Name            = $_.Name
+                    SID             = $_.SID
+                    PrincipalSource = $_.PrincipalSource
+                    ObjectClass     = $_.ObjectClass
+                }
+                $ret += $obj
+            }
         }
     }
     return $ret
