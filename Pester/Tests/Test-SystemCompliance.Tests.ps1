@@ -135,7 +135,7 @@ Describe -Name "System Compliance Test" {
 
     #region Accounts
     # -- Arrange
-    $ExceptionList = @('STINU\Admin','STINU\Administrator')
+    $ExceptionList = @("$($env:computername)\Admin","$($env:computername)\Administrator")
     # -- Act
     $Actual = Get-MemberOfLocalAdmins -ExceptionList $ExceptionList
     # -- Assert
