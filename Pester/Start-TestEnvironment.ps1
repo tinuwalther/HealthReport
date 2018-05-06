@@ -43,12 +43,14 @@ $Logfolder               = "$($script:Scriptpath)\$($script:config.startscript.L
 $Reportfolder            = "$($script:Scriptpath)\$($script:config.startscript.Reportfolder)"
 $Scriptfolder            = "$($script:Scriptpath)\$($script:config.startscript.Scriptfolder)"
 $ConfigFolder            = "$($script:Scriptpath)\$($script:config.startscript.ConfigFolder)"
-$Internalfolder          = "$($script:Scriptpath)\$($script:config.startscript.Internalfolder)"
+$Internalfolder          = "$($script:Scriptpath)\$($script:config.startscript.Internals)"
 
 $script:PesterConfigFile = "$($ConfigFolder)\$($script:config.startscript.PesterConfig)"
 $script:Logfile          = "$($Logfolder)\$($script:config.startscript.Logfile)"
 $script:Jsonfile         = "$($Reportfolder)\$($script:config.startscript.JsonFile)"
 $script:Xmlfile          = "$($Reportfolder)\$($script:config.startscript.Xmlfile)"
+$script:Xmlfile          = "$($Reportfolder)\$($script:config.startscript.Xmlfile)"
+$script:Htmlfile         = "$($Reportfolder)\$($script:config.startscript.Htmlfile)"
 #endregion
 
 "$(Get-Date -DisplayHint DateTime) [INFORMATION] Run $($script:Scriptname), Version $($script:Version)" | Out-File -FilePath $($script:Logfile) -Encoding default
@@ -58,6 +60,15 @@ $PesterReturn = Start-PesterTests
 #region output
 $PesterReturn.TestResult | Select-Object Describe,Context,Name,Result | Format-Table -AutoSize
 $PesterReturn.TestResult | Select-Object * | ConvertTo-Json | Out-File -FilePath $($script:Jsonfile)
+
+$InstallArgs = @{}
+$InstallArgs.FilePath     = "$($Internalfolder)\ReportUnit.exe"
+$InstallArgs.ArgumentList = @()
+$InstallArgs.ArgumentList += "$($Reportfolder)"
+$InstallArgs.ArgumentList += "$($Reportfolder)"
+$InstallArgs.Wait         = $true
+$InstallArgs.NoNewWindow  = $true
+(Start-Process @InstallArgs -PassThru).ExitCode
 
 "$(Get-Date -DisplayHint DateTime) [INFORMATION] Tests completed in: $($PesterReturn.Time)" | Out-File -FilePath $($script:Logfile) -Append -Encoding default
 "$(Get-Date -DisplayHint DateTime) [INFORMATION] Total: $($PesterReturn.TotalCount), Passed: $($PesterReturn.PassedCount), Failed: $($PesterReturn.FailedCount), Skipped: $($PesterReturn.SkippedCount), Pending: $($PesterReturn.PendingCount)"   | Out-File -FilePath $($script:Logfile) -Append -Encoding default

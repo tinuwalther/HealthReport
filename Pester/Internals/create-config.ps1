@@ -18,6 +18,7 @@
             PesterConfig = 'config.pester.json'
             Logfile      = 'TestEnvironment.log'
             JsonFile     = 'TestEnvironment.json'
+            HtmlFile     = 'TestEnvironment.html'
             XmlFile      = 'TestEnvironment.xml'
         }
     )

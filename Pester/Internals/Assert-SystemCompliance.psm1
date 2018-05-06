@@ -1,4 +1,4 @@
-<#
+﻿<#
 
     .SYNOPSIS
     Create a health report
@@ -229,7 +229,7 @@ function Get-MostProcesses{
     $function = $($MyInvocation.MyCommand.Name)
     Write-verbose $function
     $ret = @()
-    $wmiobj = Get-Process | Select-Object ProcessName | Group-Object ProcessName | Sort-Object Count -Descending | Select -First $threshold
+    $wmiobj = Get-Process | Select-Object ProcessName | Group-Object ProcessName | Sort-Object Count -Descending | Select-object -First $threshold
     if(-not([String]::IsNullOrEmpty($wmiobj))){
         $wmiobj | ForEach-Object{
             $obj = [PSCustomObject]@{
